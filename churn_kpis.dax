@@ -1,0 +1,67 @@
+-- Core volume metrics
+Total Customers = DISTINCTCOUNT('fact_churn'[CustomerID])
+
+Total Churned =
+CALCULATE(
+    DISTINCTCOUNT('fact_churn'[CustomerID]),
+    KEEPFILTERS('fact_churn'[Churn] = 1)
+)
+
+Total Retained = [Total Customers] - [Total Churned]
+
+Churn Rate % = DIVIDE([Total Churned], [Total Customers], 0)
+
+Retention Rate % = 1 - [Churn Rate %]
+
+-- Spend metrics aligned to the exported fact table
+Total Spend = SUM('fact_churn'[Total_Spend])
+
+Spend at Risk =
+CALCULATE(
+    [Total Spend],
+    KEEPFILTERS('fact_churn'[Churn] = 1)
+)
+
+Average Spend Per Customer = DIVIDE([Total Spend], [Total Customers], 0)
+
+-- Customer score metrics aligned to fact_customer_scores.parquet
+High Risk Customers =
+CALCULATE(
+    DISTINCTCOUNT('fact_customer_scores'[CustomerID]),
+    KEEPFILTERS('fact_customer_scores'[risk_segment] = "High Risk")
+)
+
+High Risk Revenue =
+CALCULATE(
+    SUM('fact_customer_scores'[Total_Spend]),
+    KEEPFILTERS('fact_customer_scores'[risk_segment] = "High Risk")
+)
+
+Potential Saves (10%) = ROUND([High Risk Customers] * 0.10, 0)
+
+Potential Saves (20%) = ROUND([High Risk Customers] * 0.20, 0)
+
+Potential Spend Saved (20%) = [High Risk Revenue] * 0.20
+
+Potential Spend Saved (30%) = [High Risk Revenue] * 0.30
+
+Churn Rate by Contract % = DIVIDE([Total Churned], [Total Customers], 0)
+
+-- Explainability KPIs aligned to dim_model_metrics.parquet
+Best AUC = MAX('dim_model_metrics'[auc])
+
+Best Recall = MAX('dim_model_metrics'[recall])
+
+Best F1 = MAX('dim_model_metrics'[f1])
+
+Best Precision = MAX('dim_model_metrics'[precision])
+
+Best Accuracy = MAX('dim_model_metrics'[accuracy])
+
+Best Threshold = MAX('dim_model_metrics'[best_threshold])
+
+Best Threshold Recall = MAX('dim_model_metrics'[best_threshold_recall])
+
+Best Threshold Precision = MAX('dim_model_metrics'[best_threshold_precision])
+
+Best Threshold F1 = MAX('dim_model_metrics'[best_threshold_f1])
