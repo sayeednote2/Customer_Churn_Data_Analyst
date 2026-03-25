@@ -60,7 +60,7 @@ Use files in:
 
 Then implement the DAX measures in:
 
-- powerbi/dax/churn_kpis.dax
+- churn_kpis.dax
 
 
 ## Power BI Pages
